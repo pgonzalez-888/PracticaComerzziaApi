@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,8 @@ import com.comerzzia.promocionesapi.repository.PromocionRepository;
 @Service
 public class PromocionService {
 
+	private static final Logger logger = LoggerFactory.getLogger(PromocionService.class);
+	
 	@Autowired
 	private PromocionRepository promocionRepository;
 
@@ -32,11 +36,11 @@ public class PromocionService {
 			Optional<PromocionEntity> mejorPromocion = candidatas.stream().min(Comparator.comparing(promo -> promo.calcularPrecioAplicado(linea.getPrecioUnitarioOriginal())));
 
 			if (mejorPromocion.isPresent()) {
-				System.out.println("Aplicando promoción con ID: " + mejorPromocion.get().getId());
+				logger.debug("Aplicando promoción con ID: " + mejorPromocion.get().getId());
 				linea.aplicarPromocion(mejorPromocion.get());
 			}
 			else {
-				System.out.println("No se aplicó ninguna promoción a la línea: " + linea.getCodigoArticulo());
+				logger.debug("No se aplicó ninguna promoción a la línea: " + linea.getCodigoArticulo());
 			}
 		}
 
@@ -65,6 +69,7 @@ public class PromocionService {
 			return promocionRepository.save(promocion);
 		}
 		else {
+			logger.debug("Promoción no encontrada");
 			throw new RuntimeException("Promoción no encontrada");
 		}
 	}
@@ -75,6 +80,7 @@ public class PromocionService {
 			promocionRepository.deleteById(id);
 		}
 		else {
+			logger.debug("Promoción no encontrada");
 			throw new RuntimeException("Promoción no encontrada");
 		}
 	}
