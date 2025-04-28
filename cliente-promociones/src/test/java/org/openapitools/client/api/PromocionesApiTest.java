@@ -60,7 +60,6 @@ public class PromocionesApiTest {
         promocionActualizada.setId(promocionId);
         promocionActualizada.setDescripcion("Actualizado");
         promocionActualizada.setPorcentajeDescuento(BigDecimal.valueOf(30));
-        // Campos obligatorios añadidos:
         promocionActualizada.setCodigoArticulo("EO");
         promocionActualizada.setFechaInicio(LocalDate.now());
         promocionActualizada.setFechaFin(LocalDate.now().plusDays(1));
@@ -75,7 +74,6 @@ public class PromocionesApiTest {
         String idInexistente = "NO_EXISTE";
         PromocionEntity promocion = new PromocionEntity();
         promocion.setId(idInexistente);
-        // Campos obligatorios añadidos:
         promocion.setCodigoArticulo("ART");
         promocion.setFechaInicio(LocalDate.now());
         promocion.setFechaFin(LocalDate.now().plusDays(1));
@@ -85,7 +83,7 @@ public class PromocionesApiTest {
             api.actualizarPromocion(idInexistente, promocion);
             fail("Se esperaba ApiException");
         } catch (ApiException e) {
-            assertEquals(404, e.getCode()); // Ahora debería dar 404, no 400
+            assertEquals(404, e.getCode());
         }
     }
 
@@ -113,7 +111,7 @@ public class PromocionesApiTest {
         LineaVenta linea = new LineaVenta();
         linea.setCodigoArticulo("EO");
         linea.setPrecioUnitarioOriginal(BigDecimal.valueOf(100));
-        linea.setCantidad(1); // Campo importante añadido
+        linea.setCantidad(1);
         ticket.addLineasVentaItem(linea);
 
         Ticket resultado = api.aplicarPromociones(ticket);
