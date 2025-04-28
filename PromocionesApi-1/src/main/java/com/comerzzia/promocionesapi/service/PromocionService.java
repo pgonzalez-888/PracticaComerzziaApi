@@ -27,10 +27,11 @@ public class PromocionService {
 	@Autowired
 	private PromocionRepository promocionRepository;
 
-	
 	/**
 	 * Aplica la mejor promoción vigente a cada línea de un ticket.
-	 * @param ticket Ticket con las líneas de venta a evaluar.
+	 * 
+	 * @param ticket
+	 *            Ticket con las líneas de venta a evaluar.
 	 * @return Ticket con promociones aplicadas (si las hay).
 	 */
 	public Ticket aplicarPromociones(Ticket ticket) {
@@ -56,16 +57,20 @@ public class PromocionService {
 
 	/**
 	 * Crea una promoción.
-	 * @param promocion PromocionEntity con los datos validados por el controller.
+	 * 
+	 * @param promocion
+	 *            PromocionEntity con los datos validados por el controller.
 	 * @return PromocionEntity.
 	 */
 	@Transactional
-	public PromocionEntity crearPromocion(PromocionEntity promocion) {
-		return promocionRepository.save(promocion);
-	}
+    public PromocionEntity crearPromocion(PromocionEntity promocion) {
+        validarPromocion(promocion);
+        return promocionRepository.save(promocion);
+    }
 
 	/**
 	 * Devuelve una lista de todas las promociones existentes.
+	 * 
 	 * @return List<PromocionEntity> de las promociones existentes.
 	 */
 	public List<PromocionEntity> obtenerPromociones() {
@@ -74,7 +79,9 @@ public class PromocionService {
 
 	/**
 	 * Devuelve una promoción que se consulta a traves de un id.
-	 * @param id String con el codigo de identificación de la promoción.
+	 * 
+	 * @param id
+	 *            String con el codigo de identificación de la promoción.
 	 * @return PromocionEntity que tenga el mismo id, si es que la hay
 	 */
 	public PromocionEntity obtenerPromocionPorId(String id) {
@@ -83,33 +90,52 @@ public class PromocionService {
 
 	/**
 	 * Actualiza una promoción ya existente.
-	 * @param id String, promocion PromocionEntity con el id para confirmar que existe y los datos de la promoción
+	 * 
+	 * @param id
+	 *            String, promocion PromocionEntity con el id para confirmar que existe y los datos de la promoción
 	 * @return PromociónEntity tras ser guardada en base de datos.
 	 */
 	@Transactional
-	public PromocionEntity actualizarPromocion(String id, PromocionEntity promocion) {
-		if (promocionRepository.existsById(id)) {
-			promocion.setId(id);
-			return promocionRepository.save(promocion);
-		}
-		else {
-			logger.error("Promoción no encontrada");
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Promoción no encontrada con ID: " + id);
-		}
-	}
+    public PromocionEntity actualizarPromocion(String id, PromocionEntity promocion) {
+        validarPromocion(promocion);
+        if (!id.equals(promocion.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    "ID del path no coincide con el body");
+        }
+        
+        return promocionRepository.findById(id)
+                .map(existente -> {
+                    promocion.setId(id);
+                    return promocionRepository.save(promocion);
+                })
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
+                        "Promoción no encontrada con ID: " + id));
+    }
 
 	/**
 	 * Elimina una promoción
-	 * @param id String con el que buscar la promoción que se va a eliminar.
+	 * 
+	 * @param id
+	 *            String con el que buscar la promoción que se va a eliminar.
 	 */
 	@Transactional
-	public void eliminarPromocion(String id) {
-		if (promocionRepository.existsById(id)) {
-			promocionRepository.deleteById(id);
+    public void eliminarPromocion(String id) {
+        if (!promocionRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, 
+                    "Promoción no encontrada con ID: " + id);
+        }
+        promocionRepository.deleteById(id);
+    }
+
+	private void validarPromocion(PromocionEntity promocion) {
+		if (promocion.getCodigoArticulo() == null || promocion.getCodigoArticulo().isBlank()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El código de artículo es obligatorio");
 		}
-		else {
-			logger.error("Promoción no encontrada");
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Promoción no encontrada con ID: " + id);
+		if (promocion.getFechaInicio() == null || promocion.getFechaFin() == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Las fechas de inicio y fin son obligatorias");
+		}
+		if (promocion.getFechaFin().isBefore(promocion.getFechaInicio())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha fin debe ser posterior a la fecha inicio");
 		}
 	}
 }

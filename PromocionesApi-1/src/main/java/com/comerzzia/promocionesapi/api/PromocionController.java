@@ -1,7 +1,6 @@
 package com.comerzzia.promocionesapi.api;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.comerzzia.promocionesapi.entity.PromocionEntity;
 import com.comerzzia.promocionesapi.entity.Ticket;
@@ -39,15 +39,19 @@ public class PromocionController {
 	}
 
 	@Operation(summary = "Crear una nueva promoción", description = "Crea una nueva promoción si no existe una con el mismo ID")
-	@PostMapping
-	public ResponseEntity<PromocionEntity> crearPromocion(@Valid @RequestBody PromocionEntity promocion) {
-		Optional<PromocionEntity> existingPromocion = promocionService.obtenerPromocionPorId(promocion.getId());
-		if (existingPromocion.isPresent()) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).build();
-		}
-		PromocionEntity nuevaPromocion = promocionService.crearPromocion(promocion);
-		return ResponseEntity.ok(nuevaPromocion);
-	}
+    @PostMapping
+    public ResponseEntity<PromocionEntity> crearPromocion(@Valid @RequestBody PromocionEntity promocion) {
+        try {
+        	promocionService.obtenerPromocionPorId(promocion.getId());
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } catch (ResponseStatusException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                PromocionEntity nuevaPromocion = promocionService.crearPromocion(promocion);
+                return ResponseEntity.status(HttpStatus.CREATED).body(nuevaPromocion);
+            }
+            throw e;
+        }
+    }
 
 	@Operation(summary = "Obtener todas las promociones", description = "Devuelve una lista con todas las promociones disponibles")
 	@GetMapping
@@ -59,9 +63,17 @@ public class PromocionController {
 	@Operation(summary = "Obtener una promoción por ID", description = "Devuelve los detalles de una promoción específica dado su ID")
 	@GetMapping("/{id}")
 	public ResponseEntity<PromocionEntity> obtenerPromocionPorId(@PathVariable String id) {
-		Optional<PromocionEntity> promocion = promocionService.obtenerPromocionPorId(id);
-		return promocion.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+	    try {
+	        PromocionEntity promocion = promocionService.obtenerPromocionPorId(id);
+	        return ResponseEntity.ok(promocion);
+	    } catch (ResponseStatusException e) {
+	        if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+	            return ResponseEntity.notFound().build();
+	        }
+	        throw e;
+	    }
 	}
+
 
 	@Operation(summary = "Actualizar una promoción existente", description = "Actualiza los datos de una promoción ya existente utilizando su ID")
 	@PutMapping("/{id}")
