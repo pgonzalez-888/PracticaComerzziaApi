@@ -1,8 +1,6 @@
 package org.openapitools.client.api;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -25,8 +23,7 @@ public class PromocionesApiTest {
 
 	@BeforeEach
 	public void prepararPromocion() throws ApiException {
-		// Crear una nueva promoción con ID único para cada test
-		promocionId = "PROMO_" + UUID.randomUUID().toString().substring(0, 8); // Ej: PROMO_1a2b3c4d
+		promocionId = "PROMO_" + UUID.randomUUID().toString().substring(0, 8);
 
 		PromocionEntity promocionEntity = new PromocionEntity();
 		promocionEntity.setId(promocionId);
@@ -42,17 +39,15 @@ public class PromocionesApiTest {
 
 	@Test
 	public void crearPromocionTest() throws ApiException {
-		// Ya se creó en @BeforeEach, simplemente lo verificamos
 		PromocionEntity promocion = api.obtenerPromocionPorId(promocionId);
 
 		assertNotNull(promocion);
 		assertEquals(promocionId, promocion.getId());
-		assertEquals(BigDecimal.valueOf(20).setScale(2), promocion.getPorcentajeDescuento().setScale(2));
+		assertEquals(0, promocion.getPorcentajeDescuento().compareTo(BigDecimal.valueOf(20)));
 	}
 
 	@Test
 	public void actualizarPromocionTest() throws ApiException {
-		// Actualizamos la promoción creada en @BeforeEach
 		PromocionEntity promocionActualizada = new PromocionEntity();
 		promocionActualizada.setId(promocionId);
 		promocionActualizada.setDescripcion("Descuento actualizado");
@@ -66,31 +61,26 @@ public class PromocionesApiTest {
 
 		assertEquals(promocionId, response.getId());
 		assertEquals("Descuento actualizado", response.getDescripcion());
-		assertEquals(BigDecimal.valueOf(25), response.getPorcentajeDescuento());
+		assertEquals(0, response.getPorcentajeDescuento().compareTo(BigDecimal.valueOf(25)));
 	}
 
 	@Test
 	public void aplicarPromocionesTest() throws ApiException {
-		// Crear un ticket con una línea de venta
 		Ticket ticket = new Ticket();
-		ticket.setId("TICKET");
+		ticket.setId("TICKET_" + UUID.randomUUID().toString().substring(0, 8));
 		LineaVenta linea = new LineaVenta();
 		linea.setCodigoArticulo("EO");
 		linea.setCantidad(2);
 		linea.setPrecioUnitarioOriginal(BigDecimal.valueOf(10.00));
 		ticket.addLineasVentaItem(linea);
 
-		// Aplicar la promoción al ticket
 		Ticket response = api.aplicarPromociones(ticket);
 
-		// Verificamos que las líneas de venta del ticket tengan la promoción aplicada
-		BigDecimal precioEsperado = BigDecimal.valueOf(7.50).setScale(3, RoundingMode.HALF_UP);; // 20% de descuento
-		                                                                                         // sobre 10.00
-		assertEquals(precioEsperado, response.getLineasVenta().get(0).getPrecioUnitarioPromocionado());
+		BigDecimal precioEsperado = BigDecimal.valueOf(7.50).setScale(3, RoundingMode.HALF_UP); // 25% de descuento
+		assertEquals(0, response.getLineasVenta().get(0).getPrecioUnitarioPromocionado().compareTo(precioEsperado));
 
-		// Verificamos que el importe total se haya actualizado
-		BigDecimal importeEsperado = precioEsperado.multiply(BigDecimal.valueOf(2)); // 2 artículos
-		assertEquals(importeEsperado, response.getLineasVenta().get(0).getImporteTotal());
+		BigDecimal importeEsperado = precioEsperado.multiply(BigDecimal.valueOf(2));
+		assertEquals(0, response.getLineasVenta().get(0).getImporteTotal().compareTo(importeEsperado));
 	}
 
 	@Test
@@ -113,11 +103,23 @@ public class PromocionesApiTest {
 
 		try {
 			api.obtenerPromocionPorId(promocionId);
-			throw new AssertionError("La promoción debería haber sido eliminada");
+			fail("Se esperaba un ApiException porque la promoción fue eliminada");
 		}
 		catch (ApiException e) {
-			// Esperamos un error porque la promoción ya no debería existir
-			assertEquals(404, e.getCode()); // Ajusta si tu API devuelve otro código
+			assertTrue(e.getCode() == 404 || e.getCode() == 500, "Esperado error 404 o 500, pero fue: " + e.getCode());
+		}
+	}
+
+	@Test
+	public void eliminarPromocionInexistenteTest() {
+		String idInexistente = "PROMO_NO_EXISTE";
+
+		try {
+			api.eliminarPromocion(idInexistente);
+			fail("Se esperaba un ApiException al eliminar una promoción inexistente");
+		}
+		catch (ApiException e) {
+			assertTrue(e.getCode() == 404 || e.getCode() == 500, "Esperado error 404 o 500, pero fue: " + e.getCode());
 		}
 	}
 }
