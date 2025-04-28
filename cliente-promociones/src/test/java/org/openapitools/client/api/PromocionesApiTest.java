@@ -109,13 +109,21 @@ public class PromocionesApiTest {
 		Ticket response = api.aplicarPromociones(ticket);
 
 		// Verificamos que las líneas de venta del ticket tengan la promoción aplicada
-		BigDecimal precioEsperado = BigDecimal.valueOf(7.50).setScale(3, RoundingMode.HALF_UP);; // 20% de descuento sobre 10.00
+		BigDecimal precioEsperado = BigDecimal.valueOf(7.50).setScale(3, RoundingMode.HALF_UP);; // 20% de descuento
+		                                                                                         // sobre 10.00
 		assertEquals(precioEsperado, response.getLineasVenta().get(0).getPrecioUnitarioPromocionado());
 
 		// Verificamos que el importe total se haya actualizado
 		BigDecimal importeEsperado = precioEsperado.multiply(BigDecimal.valueOf(2)); // 2 artículos
 		assertEquals(importeEsperado, response.getLineasVenta().get(0).getImporteTotal());
 	}
+
+	/**
+	 * Obtener una promoción por ID Devuelve los detalles de una promoción específica dado su ID
+	 *
+	 * @throws ApiException
+	 *             if the Api call fails
+	 */
 
 	@Test
 	public void obtenerPromocionPorIdTest() throws ApiException {
@@ -160,12 +168,5 @@ public class PromocionesApiTest {
 		api.eliminarPromocion(id);
 
 	}
-
-	/**
-	 * Obtener una promoción por ID Devuelve los detalles de una promoción específica dado su ID
-	 *
-	 * @throws ApiException
-	 *             if the Api call fails
-	 */
 
 }

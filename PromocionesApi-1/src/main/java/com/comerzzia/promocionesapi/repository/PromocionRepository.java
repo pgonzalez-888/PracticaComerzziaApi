@@ -10,6 +10,6 @@ import com.comerzzia.promocionesapi.entity.PromocionEntity;
 
 @Repository
 public interface PromocionRepository extends JpaRepository<PromocionEntity, String> {
-    List<PromocionEntity> findByCodigoArticuloAndFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(String codigoArticulo, LocalDate fechaInicio, LocalDate fechaFin);
-}
 
+	List<PromocionEntity> findByCodigoArticuloAndFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(String codigoArticulo, LocalDate fechaInicio, LocalDate fechaFin);
+}
