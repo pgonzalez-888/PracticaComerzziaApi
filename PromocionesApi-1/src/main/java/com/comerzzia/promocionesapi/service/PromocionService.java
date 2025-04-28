@@ -30,7 +30,7 @@ public class PromocionService {
 			// Obtener promociones candidatas
 			List<PromocionEntity> candidatas = promocionRepository.findByCodigoArticuloAndFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(linea.getCodigoArticulo(), hoy, hoy);
 
-			System.out.println("Promociones candidatas para el artículo " + linea.getCodigoArticulo() + ": " + candidatas.size());
+			logger.debug("Promociones candidatas para el artículo " + linea.getCodigoArticulo() + ": " + candidatas.size());
 
 			// Elegir la mejor promoción
 			Optional<PromocionEntity> mejorPromocion = candidatas.stream().min(Comparator.comparing(promo -> promo.calcularPrecioAplicado(linea.getPrecioUnitarioOriginal())));
@@ -40,7 +40,7 @@ public class PromocionService {
 				linea.aplicarPromocion(mejorPromocion.get());
 			}
 			else {
-				logger.debug("No se aplicó ninguna promoción a la línea: " + linea.getCodigoArticulo());
+				logger.error("No se aplicó ninguna promoción a la línea: " + linea.getCodigoArticulo());
 			}
 		}
 
@@ -69,7 +69,7 @@ public class PromocionService {
 			return promocionRepository.save(promocion);
 		}
 		else {
-			logger.debug("Promoción no encontrada");
+			logger.error("Promoción no encontrada");
 			throw new RuntimeException("Promoción no encontrada");
 		}
 	}
@@ -80,7 +80,7 @@ public class PromocionService {
 			promocionRepository.deleteById(id);
 		}
 		else {
-			logger.debug("Promoción no encontrada");
+			logger.error("Promoción no encontrada");
 			throw new RuntimeException("Promoción no encontrada");
 		}
 	}
