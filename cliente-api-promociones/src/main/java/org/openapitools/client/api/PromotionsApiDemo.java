@@ -28,7 +28,7 @@ public class PromotionsApiDemo {
         String fixedId    = "DEMO_FIXED_"    + UUID.randomUUID().toString().substring(0,8);
 
         try {
-            // 1. Create a discount promotion
+            // 1. Creaar una promocion de descuento
             PromotionDTO discountPromo = new PromotionDTO();
             discountPromo.setId(discountId);
             discountPromo.setType(TypeEnum.DISCOUNT);
@@ -41,7 +41,7 @@ public class PromotionsApiDemo {
             api.createPromotion(discountPromo);
             System.out.println("Created discount promotion: " + discountId);
 
-            // 2. Create a fixed-price promotion
+            // 2. Crear una promoción de precio fijo
             PromotionDTO fixedPromo = new PromotionDTO();
             fixedPromo.setId(fixedId);
             fixedPromo.setType(TypeEnum.FIXED_PRICE);
@@ -49,18 +49,18 @@ public class PromotionsApiDemo {
             fixedPromo.setStartDate(LocalDate.now());
             fixedPromo.setEndDate(LocalDate.now().plusDays(10));
             FixedPriceDetails fp = new FixedPriceDetails();
-            fp.setPrice(new BigDecimal("2")); // 2 per unit
+            fp.setPrice(new BigDecimal("2"));
             fixedPromo.setFixedPriceDetails(fp);
             api.createPromotion(fixedPromo);
             System.out.println("Created fixed-price promotion: " + fixedId);
 
-            // 3. Retrieve and print promotions
+            // 3. Recibir e imprimir promociones
             PromotionDTO gotDiscount = api.getPromotionById(discountId);
             System.out.println("Retrieved discount promo: " + gotDiscount.getDiscountDetails().getPercentage() + "%");
             PromotionDTO gotFixed = api.getPromotionById(fixedId);
             System.out.println("Retrieved fixed promo for item " + gotFixed.getItemCode() + ": unit price=" + gotFixed.getFixedPriceDetails().getPrice());
 
-            // 4. Apply promotions to a demo ticket
+            // 4. Aplicar promociones a un ticket
             TicketDTO ticket = new TicketDTO();
             ticket.setId("DEMO_TICKET");
             SaleLineDTO line1 = new SaleLineDTO();
@@ -81,7 +81,7 @@ public class PromotionsApiDemo {
                                    ", Discounted: " + sl.getDiscountedUnitPrice());
             });
 
-            // 5. Cleanup
+            // 5. Limpiar datos
             api.deletePromotion(discountId);
             api.deletePromotion(fixedId);
             System.out.println("Cleaned up promotions.");
